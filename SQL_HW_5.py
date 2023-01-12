@@ -19,6 +19,7 @@ def create_database_table(conn):
             client_id INTEGER NOT NULL REFERENCES client(client_id)
         );
         """)
+    conn.commit()
 
 
 def add_new_client(conn, first_name, last_name, email, phone_number=None):
@@ -33,6 +34,7 @@ def add_new_client(conn, first_name, last_name, email, phone_number=None):
             """, (phone_number, id))
         else:
             print(f'Клиент с ID {id} не предоставил номер телефона')
+    conn.commit()
 
 
 def droptable(conn):
@@ -41,6 +43,7 @@ def droptable(conn):
         DROP TABLE phone;
         DROP TABLE client;
         """)
+    conn.commit()
 
 
 def add_phone_number(conn, phone_number, client_id):
@@ -48,6 +51,7 @@ def add_phone_number(conn, phone_number, client_id):
         cur.execute("""
         INSERT INTO phone (phone_number, client_id) VALUES(%s, %s);
         """, (phone_number, client_id))
+    conn.commit()
 
 
 def change_data_client(conn, client_id, fist_name=None, last_name=None, email=None, phone_number=None):
@@ -76,16 +80,20 @@ def change_data_client(conn, client_id, fist_name=None, last_name=None, email=No
                 phone_id = int(input('Введите ID: '))
                 cur.execute("""UPDATE phone SET phone_number=%s WHERE phone_id=%s;""", (phone_number, phone_id))
                 print(f'Информация о номере телефона клиента с ID: {client_id} изменена')
+    conn.commit()
 
 
 def delet_phone_number(conn, phone_number, client_id):
     with conn.cursor() as cur:
         cur.execute("""DELETE FROM phone WHERE phone_number=%s AND client_id=%s;""",(phone_number,client_id))
+    conn.commit()
+
 
 def delete_client(conn, client_id):
     with conn.cursor() as cur:
         cur.execute("""DELETE FROM phone WHERE client_id=%s;""", (client_id,))
         cur.execute("""DELETE FROM client WHERE client_id=%s;""",(client_id,))
+    conn.commit()
     print()
     print('Вся информация о клиенте удалена')
     print()
@@ -113,7 +121,7 @@ def find_client(conn, first_name=None, last_name=None, email=None, phone_number=
             data_client = cur.fetchone()
             print(f'По номеру ({phone_number}) найден клиент:')
         print(f'ID: {data_client[0]}, Имя: {data_client[1]}, Фамилия: {data_client[2]}, email: {data_client[3]}')
-
+    conn.commit()
 
 with psycopg2.connect(database=database, user=user, password=password ) as conn:
     droptable(conn)
@@ -132,5 +140,6 @@ with psycopg2.connect(database=database, user=user, password=password ) as conn:
     delete_client(conn, 3)
     find_client(conn, phone_number='+33333333')
     find_client(conn, email='ПЕТЬ@ПЕТЬ.ru')
-    conn.commit()
+
+conn.close()
 
